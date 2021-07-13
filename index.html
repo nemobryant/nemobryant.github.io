@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link href="fa/css/all.css" rel="stylesheet">
+    <title>Portal</title>
+</head>
+<body>
+    <section id="upload-file-section" class='page-section'>
+      <div class="input-group">
+        <label for="config-file">Upload config and meta JSON files</label>
+        <input type="file" id="config-file" name="config-file" accept="application/json" multiple>     
+      </div>      
+      <button id="generate-form-btn">Load config</button>    
+    </section>
+    <section id="form-section" class='page-section'>
+        <form class="config-form">
+          <div class="field-container"></div>
+        </form>        
+    </section>
+    <section id="button-action-section" class='page-section'>
+      <div class="input-group">
+        <label for="output-json-button">For copy&paste</label>
+      </div>
+      <button id="output-json-button">Output Json</button>
+      <div class="input-group">
+        <label for="file-name">Save as</label>
+        <input type="text" id="file-name" key="file-name">
+      </div>
+      <button id="download-json-button">Download</button>
+    </section>
+    <section id="result-section">
+      <div class="results">
+        <h2>Form Data</h2>
+        <pre></pre>
+        </div>
+    </section>  
+    
+    <script type="text/javascript">
+        let metaData;
+        let dataSet;
+
+        const generateFormBtn = document.querySelector('#generate-form-btn');
+        generateFormBtn.onclick = function(e) {
+          // Clear old form
+          const containerDiv = document.querySelector('.field-container');
+          containerDiv.innerHTML = "";
+          let inputs = document.querySelector('input');
+          for (let input in inputs) {
+            input.value = '';
+          }
+
+          if (dataSet != undefined) { //metaData is not mandatory
+            buildForm(dataSet, metaData);
+          } else {
+            console.error('No Json file found or Json files are not ready');
+          }
+        };
+
+        const outputJsonBtn = document.querySelector("#output-json-button");
+        outputJsonBtn.onclick = function(e) {
+          e.preventDefault();
+          updateDataSet();
+          const results = document.querySelector('.results pre');
+          results.innerText = JSON.stringify(dataSet, null, 2);
+        };
+
+        const downloadJsonbtn = document.querySelector("#download-json-button");
+        downloadJsonbtn.onclick = function(e) {
+          e.preventDefault();
+          updateDataSet();
+          let fileName = document.querySelector('#file-name').value;
+          if (fileName == '') {
+            return;
+          }
+          download(JSON.stringify(dataSet, null, 2), fileName, 'application/json');
+        };
+
+        function updateDataSet() {
+          const formData = new FormData(document.querySelector('.config-form'));
+          // iterate over the property names
+          for(let pair of formData.entries()) {
+            
+            const key = pair[0];
+            const value = pair[1];
+            const keyArr = key.split('.');
+            const valueArr = value.split(',');
+
+            var last = keyArr.pop();
+            // iterate over the remaining array value 
+            // and define the object if not already defined
+            let obj = keyArr.reduce(function(o, key) {
+              // define the object if not defined and return
+              return o[key] = o[key] || {};
+              // set initial value as object
+              // and set the property value
+            }, dataSet);
+            
+            if (Array.isArray(obj[last])) {
+              obj[last] = value? valueArr : [];
+            } else {
+              obj[last] = value;
+            }
+            
+          }
+        }
+
+        function download(content, fileName, contentType) {
+          var a = document.createElement("a");
+          var file = new Blob([content], {type: contentType});
+          a.href = URL.createObjectURL(file);
+          a.download = fileName;
+          a.click();
+        }
+        
+        const fileSelector = document.getElementById('config-file');
+        fileSelector.addEventListener('change', (event) => {
+          const fileList = event.target.files;
+
+          for (let i = 0, f; f = fileList[i]; i++) {
+		        let reader = new FileReader();
+
+            // Closure to capture the file information.
+            reader.onload = (function (theFile) {
+              return function (e) {
+                try {
+                  if (theFile.name.includes('meta')) {
+                    metaData = JSON.parse(e.target.result);
+                  } else {
+                    dataSet = JSON.parse(e.target.result);
+                  }          
+                } catch (ex) {
+                  alert('ex when trying to parse json = ' + ex);
+                }
+              }
+            })(f);
+            reader.readAsText(f);
+	        }
+
+        });
+
+        function buildForm(dataSet, metaData) {
+          // dataSet = configData;
+          function recurse(data, metaData, current, outerDiv, cascadeKey) {
+              for (const key in data) {
+                
+                  const subDiv = document.createElement("div");
+                  subDiv.className = "input-group";
+                  let value = data[key];
+                  let meta;
+                  if (metaData != undefined) {
+                    meta = metaData[key]; //protect inconsistent key
+                  }
+                  if(value != undefined) {
+                      const formKey = cascadeKey? cascadeKey + "." + key : key;
+                      if (value && typeof value === 'object') {                        
+                        if (Array.isArray(value)) {
+                          paintFormField(subDiv, key, formKey, value, meta);
+                        } else {
+                          const title = document.createElement("p");
+                          title.innerText = key;
+                          subDiv.appendChild(title);                        
+                          recurse(value, meta, key, subDiv, formKey);
+                        }                        
+                      } else {
+                        paintFormField(subDiv, key, formKey, value, meta);                        
+                      }
+                  }
+                  outerDiv.appendChild(subDiv);
+              }
+          }
+          const containerDiv = document.querySelector('.field-container');
+          recurse(dataSet, metaData, null, containerDiv, '');
+        }
+
+        function paintFormField(div, key, formKey, value, meta) {
+          const namelabel = document.createElement("label");
+          namelabel.for = formKey;
+          div.appendChild(namelabel);
+          
+          const icon = document.createElement("i");
+          icon.className = 'fas fa-info-circle'
+          div.appendChild(icon);
+
+          if (meta != undefined) {
+            namelabel.innerText = meta.displayName;
+            icon.title = meta.description;
+          } else {
+            //TODO: highlight
+            namelabel.innerText = key + " <need display name>";
+            namelabel.className = 'error';
+            icon.title = "<need description>";
+          }
+          const input = document.createElement("input");
+          input.id = formKey;
+          input.name = formKey;
+          input.type = 'text';
+          input.value = value;                         
+          div.appendChild(input);
+        }
+    </script>
+</body>
+</html>
