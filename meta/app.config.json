@@ -1,0 +1,199 @@
+{
+    "brand": {
+        "displayName": "Folder name",
+        "description": "Folder to store configuration files",
+        "branding": false
+    },
+    "dynamic": {
+        "displayName": "Enable dynamic branding",
+        "description": "Whether to enable dynamic branding for current brand",
+        "branding": false
+    },
+    "appName": {
+        "displayName": "App name",
+        "description": "Non user visible application name, not customizable",
+        "branding": false
+    },
+    "brandName": {
+        "displayName": "Brand name",
+        "description": "Brand name shown in the app",
+        "branding": true
+    },
+    "enableAutoSuggestionWhileInvite": {
+        "displayName": "Invite personal contacts",
+        "description": "Allow search for personal contacts while inviting persons by email (RC only)",
+        "branding": false
+    },
+    "phoneAppName": {
+        "displayName": "Spartan app name",
+        "description": "Settings -> Phone -> Default phone app name",
+        "branding": true
+    },
+    "currentBrandMeetingAppName": {
+        "displayName": "Meeting name in codebase",
+        "description": "Brand meeting name id returned by parser",
+        "branding": false
+    },
+    "videoAppName": {
+        "displayName": "RCV meeting name",
+        "description": "Brand RCV meeting name (RC: RingCentral Video)",
+        "branding": true
+    },
+    "userAgent": {
+        "appName": {
+            "displayName": "X-User-Agent AppName",
+            "description": "Take effect post login",
+            "branding": true
+        },
+        "brandName": {
+            "displayName": "X-User-Agent BrandName",
+            "description": "Take effect post login",
+            "branding": true
+        }
+    },
+    "themeCategories": {
+        "light": {
+          "themes": {
+            "displayName": "Available themes",
+            "description": "Themes available in Settings - Themes",
+            "branding": true
+          },
+          "default": {
+              "displayName": "Default theme to set",
+              "description": "Default theme set for the customer",
+              "branding": true
+          }
+        }
+    },
+    "domain": {
+        "displayName": "App domain",
+        "description": "Web Jupiter domain",
+        "branding": false
+    },
+    "cspDomains": {
+        "displayName": "Backend domain whitelist",
+        "description": "Put a list of backend domains in whitelist for request",
+        "branding": false
+    },
+    "security" : {
+        "displayName": "About - Security",
+        "description": "Security URL (RC: https://netstorage.ringcentral.com/documents/rcapp_security.pdf)",
+        "branding": true
+    },
+    "privacyPolicy" : {
+        "displayName": "About - Privacy Notice",
+        "description": "Privacy notice URL (RC: https://www.ringcentral.com/legal/privacy-notice.html)",
+        "branding": true
+    },
+    "privacyPolicyFreeUsers" : {
+        "displayName": "About - Privacy Notice",
+        "description": "Privacy Notice URL for Phoenix users (RC: https://www.ringcentral.com/legal/rc-privacy-notice.html)",
+        "branding": true
+    },
+    "termsOfService" : {
+        "displayName": "About - Terms of Service",
+        "description": "ToS URL (RC: https://www.ringcentral.com/legal/eulatos.html)",
+        "branding": true
+    },
+    "termsOfServiceFreeUsers" : {
+        "displayName": "About - Terms of Service",
+        "description": "ToS URL for Phoenix users (RC: https://www.ringcentral.com/legal/rc-terms-of-service.html)",
+        "branding": true
+    },
+    "acceptableUsePolicy" : {
+        "displayName": "About - Acceptable use policy",
+        "description": "Acceptable use policy URL for Phoenix users (RC: https://www.ringcentral.com/legal/acceptable-use-policy.html)",
+        "branding": true
+    },
+    "plansAndPricing" : {
+        "displayName": "Phoenix PnP",
+        "description": "Price & Plan URL for Phoenix users (RC: https://www.ringcentral.com/office/plansandpricing.html)",
+        "branding": true
+    },
+    "plansAndPricingForVideo" : {
+        "displayName": "Phoenix PnP",
+        "description": "Price & Plan URL (Video focused) for Phoenix users (RC: https://www.ringcentral.com/office/plansandpricing.html#video)",
+        "branding": true
+    },
+    "hideInviteByText" : {
+        "displayName": "Invite free account by text",
+        "description": "true = disable, false = enable",
+        "branding": false
+    },
+    "hideInviteByShareLink" : {
+        "displayName": "Invite free account by share link",
+        "description": "true = disable, false = enable",
+        "branding": false
+    },
+    "shareIdea" : {
+        "enable": {
+            "displayName": "Share idea entry",
+            "description": "true = enable, false = disable",
+            "branding": false
+        },
+        "link": {
+            "displayName": "Share idea link",
+            "description": "Ideas board link (Must provide if enable is true, RC: https://ringcentralapp.ideas.aha.io)",
+            "branding": false
+        }
+    },
+    "reportIssue" : {
+        "enable": {
+            "displayName": "Whether to enable report issue",
+            "description": "true = enable, false = disable",
+            "branding": false
+        }
+        
+    },
+    "getSupport" : {
+        "enable": {
+            "displayName": "Whether to Show Get Support entry",
+            "description": "true = enable, false = disable",
+            "branding": false
+        },
+        "link": {
+            "displayName": "Get support link",
+            "description": "(RC: https://support.ringcentral.com/)",
+            "branding": true
+        },
+        "linkForPhoenixFreeUsers": {
+            "displayName": "Get support link for Phoenix",
+            "description": "(RC: https://support.ringcentral.com/s/article/RingCentral-Message-and-Video-Overview)",
+            "branding": true
+        }
+    },
+    "enableSignUp": {
+        "displayName": "Whether to show create free account",
+        "description": "true = enable, false = disable",
+        "branding": false
+    },
+    "rcmAppSettings" : {
+        "launcherName": {
+            "branding": false
+        }
+    },
+    "protocols": {
+        "universal": {
+            "branding": false
+        },
+        "rcv": { 
+            "branding": false
+        },
+        "zoom": {
+            "branding": false
+        },
+        "callto": {
+            "branding": false
+        },
+        "tel": {
+            "branding": false
+        },
+        "fax": {
+            "branding": false
+        }
+    },
+    "mobileAppDownloadLink": {
+        
+    }
+}
+  
