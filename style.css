@@ -86,7 +86,13 @@ line-height: 1.125;
 margin-right: 0.5em;
 }
 
-.page-section label.error {
+.page-section p.label {
+    float: left;
+    margin-right: 0.25rem;
+}
+
+.page-section label.error,
+.page-section p.error {
 color: var(--color-red);
 }
 
@@ -141,7 +147,6 @@ font-family: lato, sans-serif;
 font-size: 100%;
 letter-spacing: 0.05em;
 line-height: 1.5;
-text-transform: uppercase;
 transition: 150ms all linear;
 }
 
@@ -150,4 +155,20 @@ transition: 150ms all linear;
 .page-section button:focus {
 background: var(--color-darkest);
 cursor: pointer;
+}
+
+button#collapsible-button {
+font-size: 15px;
+width: auto;
+margin:0;
+display: inline-flex;
+float: right;
+}
+
+div.non-branding-section-header {
+    vertical-align: middle;
+}
+
+div.non-branding-section-header h2 {
+    display: inline-block;
 }
