@@ -5,7 +5,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <link href="fa/css/all.css" rel="stylesheet">
     <title>Portal</title>
 </head>
 <body>
@@ -18,14 +17,24 @@
     </section>
     <section id="form-section" class='page-section'>
         <form class="config-form">
-          <div class="field-container"></div>
-        </form>        
+          <h2>Branding fields</h2>
+          <div class="branding-fields">
+          </div>
+          <div class="non-branding-section-header">
+            <h2>Non branding fields</h2>
+            <button id="collapsible-button">+</button>
+          </div>
+          <div class="other-fields" style="display: none;"></div>
+          <h2>New keys</h2>
+          <div class="new-keys">
+          </div>
+        </form>
     </section>
     <section id="button-action-section" class='page-section'>
       <div class="input-group">
-        <label for="output-json-button">For copy&paste</label>
+        <label for="output-json-button">For Copy & Paste</label>
       </div>
-      <button id="output-json-button">Output Json</button>
+      <button id="output-json-button">Print Json</button>
       <div class="input-group">
         <label for="file-name">Save as</label>
         <input type="text" id="file-name" key="file-name">
@@ -42,19 +51,61 @@
     <script type="text/javascript">
         let metaData;
         let dataSet;
+        
+        const fileSelector = document.getElementById('config-file');
+        let configFileName;
+        fileSelector.addEventListener('change', (event) => {
+          const fileList = event.target.files;
+
+          for (let i = 0, f; f = fileList[i]; i++) {
+		        let reader = new FileReader();
+
+            // Closure to capture the file information.
+            reader.onload = (function (theFile) {
+              return function (e) {
+                try {
+                  configFileName = f.name;
+                  dataSet = JSON.parse(e.target.result);         
+                } catch (ex) {
+                  console.log('Configuration file not found ' + ex);
+                }
+              }
+            })(f);
+            reader.readAsText(f);
+	        }
+
+        });
+
+
 
         const generateFormBtn = document.querySelector('#generate-form-btn');
         generateFormBtn.onclick = function(e) {
-          // Clear old form
-          const containerDiv = document.querySelector('.field-container');
-          containerDiv.innerHTML = "";
+          // Clear old forms
+          const brandingFieldsContainer = document.querySelector('.branding-fields');
+          brandingFieldsContainer.innerHTML = "";
+          const otherFieldsContainer = document.querySelector('.other-fields');
+          otherFieldsContainer.innerHTML = "";
+          const newKeysContainer = document.querySelector('.new-keys');
+          newKeysContainer.innerHTML = "";
           let inputs = document.querySelector('input');
           for (let input in inputs) {
             input.value = '';
           }
 
           if (dataSet != undefined) { //metaData is not mandatory
-            buildForm(dataSet, metaData);
+            //buildForm(dataSet, metaData, null, null /*initial key = null*/, '' /* initial key value is empty*/);
+            //read MetaData file and proceed
+            fetch('meta/' + configFileName)
+              .then(function (response) {
+                return response.json();
+              })
+              .then(function (data) {
+                metaData = data;
+                buildForm(flatten(dataSet), flatten(metaData));
+              })
+              .catch(function (err) {
+                console.log(err);
+              });
           } else {
             console.error('No Json file found or Json files are not ready');
           }
@@ -115,92 +166,196 @@
           a.download = fileName;
           a.click();
         }
-        
-        const fileSelector = document.getElementById('config-file');
-        fileSelector.addEventListener('change', (event) => {
-          const fileList = event.target.files;
 
-          for (let i = 0, f; f = fileList[i]; i++) {
-		        let reader = new FileReader();
-
-            // Closure to capture the file information.
-            reader.onload = (function (theFile) {
-              return function (e) {
-                try {
-                  if (theFile.name.includes('meta')) {
-                    metaData = JSON.parse(e.target.result);
+        function buildForm(configData, metaData) {
+          const brandingFieldsContainer = document.querySelector('.branding-fields');
+          const otherFieldsContainer = document.querySelector('.other-fields');
+          const newKeysContainer = document.querySelector('.new-keys');
+          for (const key in configData) {
+              
+              const subDiv = document.createElement("div");
+              subDiv.className = "input-group";
+              let value = configData[key];
+              
+              if(value != undefined) {
+                let isBrandingField;
+                let displayName;
+                let description;
+                  if(metaData != undefined) {
+                    isBrandingField = metaData[key + ".branding"];
+                    displayName = metaData[key + '.displayName'];
+                    description = metaData[key + '.description'];
+                  }
+                  
+                  paintFormField(subDiv, key, value, displayName, description);
+                  if (isBrandingField == undefined) {
+                    newKeysContainer.appendChild(subDiv);
+                  } else if (isBrandingField) {
+                      brandingFieldsContainer.appendChild(subDiv);
                   } else {
-                    dataSet = JSON.parse(e.target.result);
-                  }          
-                } catch (ex) {
-                  alert('ex when trying to parse json = ' + ex);
-                }
-              }
-            })(f);
-            reader.readAsText(f);
-	        }
-
-        });
-
-        function buildForm(dataSet, metaData) {
-          // dataSet = configData;
-          function recurse(data, metaData, current, outerDiv, cascadeKey) {
-              for (const key in data) {
-                
-                  const subDiv = document.createElement("div");
-                  subDiv.className = "input-group";
-                  let value = data[key];
-                  let meta;
-                  if (metaData != undefined) {
-                    meta = metaData[key]; //protect inconsistent key
-                  }
-                  if(value != undefined) {
-                      const formKey = cascadeKey? cascadeKey + "." + key : key;
-                      if (value && typeof value === 'object') {                        
-                        if (Array.isArray(value)) {
-                          paintFormField(subDiv, key, formKey, value, meta);
-                        } else {
-                          const title = document.createElement("p");
-                          title.innerText = key;
-                          subDiv.appendChild(title);                        
-                          recurse(value, meta, key, subDiv, formKey);
-                        }                        
-                      } else {
-                        paintFormField(subDiv, key, formKey, value, meta);                        
-                      }
-                  }
-                  outerDiv.appendChild(subDiv);
+                    otherFieldsContainer.appendChild(subDiv);
+                  }                 
               }
           }
-          const containerDiv = document.querySelector('.field-container');
-          recurse(dataSet, metaData, null, containerDiv, '');
         }
 
-        function paintFormField(div, key, formKey, value, meta) {
-          const namelabel = document.createElement("label");
-          namelabel.for = formKey;
-          div.appendChild(namelabel);
+        function paintFormField(containerDiv, key, value, name, description) {
+          const namelabel = document.createElement("p");
+          namelabel.className = 'label';
+          containerDiv.appendChild(namelabel);
           
-          const icon = document.createElement("i");
-          icon.className = 'fas fa-info-circle'
-          div.appendChild(icon);
+          const desc = document.createElement("p");
+          containerDiv.appendChild(desc);
 
+          if (name != undefined) {
+            namelabel.innerText = name;
+          } else {
+            namelabel.innerText = key + " <need display name>";
+            namelabel.className += ' error';
+          }
+
+          if (description != undefined) {
+            desc.innerText = ' (' + description + ')';
+          } else {
+            desc.innerText = " (<no description>)";
+            desc.className += ' error';
+          }
+
+          const input = document.createElement("input");
+          input.id = key;
+          input.name = key;
+          input.type = 'text';
+          input.value = value;                         
+          containerDiv.appendChild(input);
+        }    
+
+        function flatten(data) {
+            var result = {};
+            function recurse (cur, prop) {
+                if (Object(cur) !== cur) {
+                    result[prop] = cur;
+                } else if (Array.isArray(cur)) {
+                    cur.length == 0? result[prop] = [] : result[prop] = cur;
+                    
+                } else {
+                    var isEmpty = true;
+                    for (var p in cur) {
+                        isEmpty = false;
+                        recurse(cur[p], prop ? prop+"."+p : p);
+                    }
+                    if (isEmpty && prop)
+                        result[prop] = {};
+                }
+            }
+            recurse(data, "");
+            return result;
+        }
+
+        var toggleBtn = document.querySelector("#collapsible-button");
+        toggleBtn.onclick = function(e) {
+          e.preventDefault();
+          const otherFieldsDiv = document.querySelector('.other-fields');
+          if (otherFieldsDiv.style.display === "block") {
+            otherFieldsDiv.style.display = "none";
+          } else {
+            otherFieldsDiv.style.display = "block";
+          }
+        };
+
+        /*
+        function buildForm(data, metaData, containerDiv, initialKey, initialKeyValue) {
+            const brandingDivContainer = document.querySelector('.branding-fields');
+            const otherDivContainer = document.querySelector('.other-fields');
+            for (const key in data) {
+              
+                const subDiv = document.createElement("div");
+                subDiv.className = "input-group";
+                let value = data[key];
+                let meta;
+                let isBrandingField;
+                if (metaData != undefined) {
+                  meta = metaData[key]; //protect inconsistent key
+                }
+                if(value != undefined) {
+                    const formKey = initialKeyValue? initialKeyValue + "." + key : key;
+                    if (value && typeof value === 'object') {                        
+                      if (Array.isArray(value)) {
+                        isBrandingField = paintFormField(subDiv, key, formKey, value, meta);
+                      } else {
+                        const title = document.createElement("h2");
+                        title.innerText = key;
+                        subDiv.appendChild(title);
+                        isBrandingField = (meta != undefined)? meta.branding : false;                    
+                        buildForm(value, meta, subDiv, key, formKey);
+                      }                        
+                    } else {
+                      isBrandingField = paintFormField(subDiv, key, formKey, value, meta);                        
+                    }
+                }
+                if (containerDiv) {
+                  containerDiv.appendChild(subDiv);
+                } else {
+                  isBrandingField? brandingDivContainer.appendChild(subDiv) : otherDivContainer.appendChild(subDiv);
+                }
+                //containerDiv.appendChild(subDiv);
+            }
+        }
+        
+         function unflatten(data) {
+            "use strict";
+            if (Object(data) !== data || Array.isArray(data))
+                return data;
+            var regex = /\.?([^.\[\]]+)|\[(\d+)\]/g,
+                resultholder = {};
+            for (var p in data) {
+                var cur = resultholder,
+                    prop = "",
+                    m;
+                while (m = regex.exec(p)) {
+                    cur = cur[prop] || (cur[prop] = (m[2] ? [] : {}));
+                    prop = m[2] || m[1];
+                }
+                // check if it's array
+                if (dataSet[prop] != undefined && Array.isArray(dataSet[prop])) {
+                  cur[prop] = data[p].split(',');;
+                } else {
+                  cur[prop] = data[p];
+                }
+            }
+            return resultholder[""] || resultholder;
+        };
+
+        function paintFormField(containerDiv, key, formKey, value, meta) {
+          
+          const namelabel = document.createElement("p");
+          namelabel.className = 'label';
+          containerDiv.appendChild(namelabel);
+          
+          const desc = document.createElement("p");
+          containerDiv.appendChild(desc);
+
+          let isBrandingField;
           if (meta != undefined) {
             namelabel.innerText = meta.displayName;
-            icon.title = meta.description;
+            desc.innerText = ' (' + meta.description + ')';
+            isBrandingField = meta.branding;
           } else {
             //TODO: highlight
             namelabel.innerText = key + " <need display name>";
-            namelabel.className = 'error';
-            icon.title = "<need description>";
+            namelabel.className += ' error';
+            desc.innerText = " (<no description>)";
+            desc.className += ' error';
           }
           const input = document.createElement("input");
           input.id = formKey;
           input.name = formKey;
           input.type = 'text';
           input.value = value;                         
-          div.appendChild(input);
-        }
+          containerDiv.appendChild(input);
+          return isBrandingField;
+        }  
+
+        */
     </script>
 </body>
 </html>
